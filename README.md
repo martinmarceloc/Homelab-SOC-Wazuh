@@ -1,75 +1,55 @@
-# 🛡️ Homelab SOC: Despliegue de un SIEM en Red Segmentada
+🛡️ Mi Laboratorio SOC: Wazuh + Alertas en Discord 🚀
+¡Hola! Decidí armar este laboratorio para meter las manos en la masa y llevar a la práctica lo que voy aprendiendo sobre redes y seguridad. La idea no era simplemente darle "siguiente, siguiente" a un instalador, sino armar una red desde cero, separar el tráfico y ver cómo funciona un SIEM (Wazuh) en la vida real usando servidores Linux.
 
-¡Hola! Decidí armar este laboratorio para llevar a la práctica los conceptos teóricos de mi carrera en telecomunicaciones y redes. El objetivo principal de este proyecto es desplegar un Centro de Operaciones de Seguridad (SOC) local utilizando **Wazuh** para monitorear, detectar y analizar vulnerabilidades en un entorno de servidores Linux.
+El objetivo final: Monitorear mis máquinas y que me llegue una notificación al celular si alguien intenta hacer algo raro.
 
-No quería simplemente instalar un programa, sino diseñar la arquitectura de red desde cero, aislar el tráfico y automatizar la administración remota.
+🛠️ Lo que usé para este proyecto
+Máquinas Virtuales: VirtualBox (manejado todo por consola, sin interfaz gráfica).
 
-## 🛠️ Stack Tecnológico
-* **Virtualización:** VirtualBox (Gestión vía CLI)
-* **Sistemas Operativos:** Ubuntu Server 24.04 LTS
-* **Redes y Enrutamiento:** Netplan, OpenSSH, Port Forwarding
-* **Ciberseguridad (SIEM):** Wazuh (Indexer, Manager, Dashboard) y Elastic Stack.
+Sistemas Operativos: Ubuntu Server 24.04 LTS.
 
----
+Redes: Netplan, OpenSSH y Port Forwarding.
 
-## 🗺️ Arquitectura y Topología de Red
+Seguridad: Wazuh (el cerebro que vigila todo) + un Webhook de Discord.
 
-El laboratorio consta de dos máquinas virtuales configuradas con múltiples interfaces de red para simular un entorno corporativo segmentado:
+🗺️ Cómo armé la Red
+Creé dos máquinas virtuales y a cada una le puse dos tarjetas de red: una para tener salida a internet (NAT) y otra para crear una red interna (SOC-LAN) donde se comunican entre ellas de forma segura.
 
-1. **Wazuh-Server (El Cerebro):**
-   * Adaptador 1 (NAT): Salida a internet.
-   * Adaptador 2 (Internal Network `SOC-LAN`): IP estática `192.168.10.10`
-   * Función: Recibir, indexar y analizar los logs de seguridad.
+Wazuh-Server (El Cerebro): Tiene la IP estática 192.168.10.10. Acá se guardan y analizan los logs.
 
-2. **Ubuntu-Agent (La Víctima):**
-   * Adaptador 1 (NAT): Salida a internet.
-   * Adaptador 2 (Internal Network `SOC-LAN`): IP estática `192.168.10.20`
-   * Función: Máquina de un usuario o servidor interno que envía telemetría.
+Ubuntu-Agent (La Víctima): Tiene la IP estática 192.168.10.20. Es la máquina que simula a un usuario normal y envía sus reportes.
 
-Para administrar todo de forma centralizada sin usar la interfaz gráfica (GUI) de las máquinas, configuré túneles SSH mediante **Port Forwarding** en el hipervisor (Puertos `2222` y `2223` mapeados al puerto `22` local). Todo el proyecto se opera remotamente desde Windows usando MobaXterm.
+Dato: Para no usar la pantallita chica de VirtualBox, mapeé los puertos en el hipervisor (Port Forwarding a los puertos 2222 y 2223) y ahora controlo ambas máquinas tranquilamente por SSH desde mi Windows usando MobaXterm.
 
----
+🚀 Pasos que seguí y problemas que me topé
+Fase 1: Peleando con la red (Netplan)
+Para que las IPs no cambien cada vez que reinicio, tuve que meterme a editar los archivos YAML de Netplan a mano. Dejé las interfaces con internet en DHCP y le clavé las IPs estáticas a las de la red interna (usando la subred 192.168.10.0/24).
 
-## 🚀 Fases del Proyecto (Hasta ahora)
+Fase 2: El servidor se quedaba sin RAM (OOM Killer)
+Instalando Wazuh, el servidor se me moría. Resulta que el sistema de Linux estaba matando el proceso (el famoso OOM Killer) porque la base de datos se comía toda la RAM. Lo solucioné apagando la máquina, subiéndole la RAM a 6GB y, por si acaso, le armé 4GB de memoria Swap a pura consola. Después de eso, instaló como seda.
 
-### Fase 1: Infraestructura como Código (Netplan)
-Para asegurar que la red privada sea persistente, configuré el enrutamiento escribiendo directamente los archivos YAML de Netplan. Mantuve las interfaces NAT con DHCP para las actualizaciones, mientras asigne el direccionamiento estático de la subred `192.168.10.0/24` a las interfaces de la LAN.
+Fase 3 y 4: Instalando Wazuh y conectando a la víctima
+Instalé todo el ecosistema de Wazuh en el servidor principal. Luego generé un instalador para el Agente, lo corrí en la máquina víctima, comprobé con unos pings que se vieran bien, y listo. El agente empezó a mandar la telemetría encriptada por la red interna.
 
-### Fase 2: Troubleshooting de Recursos (El OOM Killer)
-Durante la instalación del indexador de Wazuh, me topé con un problema clásico de servidores: el *Out of Memory (OOM) Killer* de Linux estaba matando el proceso del *Manager* porque la base de datos consumía toda la RAM. 
-* **La solución:** Apagué la máquina, reasigné la memoria física a 6GB y, para blindar el servidor, le particioné 4GB de memoria virtual (**Swap**) mediante línea de comandos. La instalación fluyó sin problemas después de esto.
+Fase 5: Simulando un ataque (Fuerza bruta)
+Para comprobar que el SIEM no estaba ahí de adorno, me puse a fallar inicios de sesión por SSH a propósito. En cuestión de milisegundos, el panel web de Wazuh detectó el comportamiento raro y me generó la alerta en rojo.
 
-### Fase 3: Despliegue del Cerebro (All-in-One)
-Ejecuté la instalación del ecosistema Wazuh en el servidor principal. Esto levantó el Indexer (para búsquedas rápidas de logs), el Manager (el motor de reglas MITRE ATT&CK) y el Dashboard web, el cual expuse mediante HTTPS.
+Fase 6: Avisos por Discord (Mi mayor dolor de cabeza)
+Quería que Wazuh me mande un mensaje a Discord si pasaba algo grave. Intenté usar la configuración que trae por defecto para Slack, pero no funcionaba y me tiraba un "Error 7" en los logs. Descubrí que Wazuh manda los datos crudos en texto plano (como ruledescription='...') y la API de Discord lo rechazaba.
 
-### Fase 4: Despliegue y Enlace del Agente
-Generé el payload de instalación desde el servidor y lo ejecuté en la máquina víctima. Validé la conexión capa 3 con pings continuos y confirmé el *handshake* criptográfico. El agente ahora lee los logs locales de Ubuntu y los envía encriptados por la red `SOC-LAN`.
+La solución: Me armé un script propio en Bash (custom-discord). Usé grep y cut para extraer solo el texto del ataque y mandarlo a Discord usando curl. Le acomodé los permisos de Linux al grupo wazuh y ¡funcionó!
 
-### Fase 5: Simulación de Ataques y Detección (Red Teaming Básico)
-Para probar que el SIEM no está de adorno, simulé tráfico malicioso en la máquina víctima:
-* Ejecuté múltiples intentos fallidos de inicio de sesión por SSH (Fuerza bruta).
-* En cuestión de milisegundos, el dashboard web de Wazuh detectó la anomalía, la clasificó bajo las tácticas de acceso inicial y generó las alertas correspondientes en el panel visual.
-
----
-
-### Evidencias del Despliegue
-
-**1. Esta imagen muestra la IP origen del ataque, la alerta y el nivel.
+📸 Evidencias del Despliegue
+1. Esta imagen muestra la IP origen del ataque, la alerta en el dashboard y el nivel de severidad.
 <img width="1895" height="972" alt="alertas" src="https://github.com/user-attachments/assets/ef8afa91-1f5e-456a-85e9-2fe48a41aa09" />
 
-**2. Esta imagen muestra la configuracion de IP para el servidor utilizando el comando ip a, y tambien muestra la configuracion del archivo "01-netcfg.yaml" que utilice.
-
+2. Esta imagen muestra la configuración de IP para el servidor utilizando el comando ip a, y también el archivo 01-netcfg.yaml que usé con Netplan.
 <img width="801" height="512" alt="servidor" src="https://github.com/user-attachments/assets/211f1b95-88ac-45bb-ab74-044db9ad0ba9" />
 
-**3. Esta imagen muestra la memoria dada al servidor para solucionar el OOM Killer.
-
+3. Esta imagen muestra la memoria Swap creada y los recursos asignados para evitar el OOM Killer.
 <img width="670" height="76" alt="memoria" src="https://github.com/user-attachments/assets/257fd080-f8d6-4d5f-aff5-2d60ba03732a" />
 
+📝 Apuntes para no olvidarme
+Ojo con la versión de Ubuntu: Estoy usando la 24.04 LTS y varias cosas cambian respecto a tutoriales más viejos. Por ejemplo, cómo maneja los servicios de red (dhcpcd vs antiguos) y la sintaxis de Netplan.
 
-
----
-
-###Notas a tener en cuenta durante el desarrollo
-* Tener en cuenta la version del Ubuntu ya que algunos comandos cambian, para este caso utilice la version 24.04 TLS y por ejemplo el comando dhcp en esta nueva version se usa dhcpcd, y cosas asi hay que tener en cuenta siempre.
-* Tener siempre en cuenta la syntaxis de la version del sistema operativo usado.
-
+Sintaxis estricta: Siempre hay que tener cuidado con la indentación de los archivos YAML o los scripts en Bash, un espacio mal puesto y el servicio no levanta.
