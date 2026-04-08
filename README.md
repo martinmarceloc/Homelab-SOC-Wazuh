@@ -52,11 +52,6 @@ Para probar que el SIEM no está de adorno, simulé tráfico malicioso en la má
 
 ---
 
-## Nota
-* Tener en cuenta la version del Ubuntu ya que algunos comandos cambian, para este caso utilice la version 24.04 TLS y por ejemplo el comando dhcp en esta nueva version se usa dhcpcd, y cosas asi hay que tener en cuenta siempre.
-
----
-
 ### Evidencias del Despliegue
 
 **1. Esta imagen muestra la IP origen del ataque, la alerta y el nivel.
@@ -69,3 +64,12 @@ Para probar que el SIEM no está de adorno, simulé tráfico malicioso en la má
 **3. Esta imagen muestra la memoria dada al servidor para solucionar el OOM Killer.
 
 <img width="670" height="76" alt="memoria" src="https://github.com/user-attachments/assets/257fd080-f8d6-4d5f-aff5-2d60ba03732a" />
+
+
+
+---
+
+###Notas a tener en cuenta durante el desarrollo
+* Tener en cuenta la version del Ubuntu ya que algunos comandos cambian, para este caso utilice la version 24.04 TLS y por ejemplo el comando dhcp en esta nueva version se usa dhcpcd, y cosas asi hay que tener en cuenta siempre.
+* Tener siempre en cuenta la syntaxis de la version del sistema operativo usado.
+
