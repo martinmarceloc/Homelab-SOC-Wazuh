@@ -37,7 +37,6 @@ Instalé todo el ecosistema de Wazuh en el servidor principal. Luego generé un 
 <img width="495" height="177" alt="maquina1 a maquina2" src="https://github.com/user-attachments/assets/36fd6771-bc53-4996-a73f-aed5d34346c5" />
 <img width="501" height="158" alt="maquina 2 a maquina 1" src="https://github.com/user-attachments/assets/bfc380fe-ef09-42b3-9070-c3ebdf2a1cfc" />
 
-
 ### Fase 5: Simulando un ataque (Fuerza bruta)
 Para comprobar que el SIEM no estaba ahí de adorno, me puse a fallar inicios de sesión por SSH a propósito. En cuestión de milisegundos, el panel web de Wazuh detectó el comportamiento raro y me generó la alerta en rojo.
 
@@ -46,6 +45,11 @@ Quería que Wazuh me mande un mensaje a Discord si pasaba algo grave. Intenté u
 * **La solución:** Me armé un script propio en Bash (`custom-discord`). Usé `grep` y `cut` para extraer solo el texto del ataque y mandarlo a Discord usando `curl`. Le acomodé los permisos de Linux al grupo `wazuh` y ¡funcionó!
 
 <img width="753" height="327" alt="custom-discord" src="https://github.com/user-attachments/assets/673ed0a8-0e6d-49dd-a3fe-673d01cbb783" />
+
+Para que Wazuh supiera que tenía que usar este script, tuve que modificar su archivo de configuración principal (`ossec.conf`). Le puse que solo use el webhook con alertas de nivel 10 para no llenarme de spam por cosas sin importancia. Así quedó el código:
+
+<img width="762" height="926" alt="ossec conf foto" src="https://github.com/user-attachments/assets/4522773d-eb8a-4338-b91c-6ac213557ce7" />
+
 
 ---
 
@@ -59,6 +63,10 @@ Quería que Wazuh me mande un mensaje a Discord si pasaba algo grave. Intenté u
 
 **3. Salvando la RAM:** Esta imagen muestra la memoria Swap creada y los recursos asignados para evitar el OOM Killer.
 <img width="670" height="76" alt="memoria" src="https://github.com/user-attachments/assets/257fd080-f8d6-4d5f-aff5-2d60ba03732a" />
+
+**4. El resultado final (Funcionando al 100%):** Aquí se ve lado a lado cómo el ataque salta en el dashboard de Wazuh y, al mismo instante, me llega la alerta al canal de Discord.
+<img width="1919" height="1075" alt="dashboardydiscord" src="https://github.com/user-attachments/assets/f988c531-df0c-4c8c-8309-dbbcbdbded71" />
+
 
 ---
 
