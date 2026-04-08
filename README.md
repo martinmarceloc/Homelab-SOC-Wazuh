@@ -52,9 +52,7 @@ Para probar que el SIEM no está de adorno, simulé tráfico malicioso en la má
 
 ---
 
-## 🔜 Próximos Pasos
-Este proyecto está en evolución. Mis siguientes objetivos son:
-1. **Respuesta Activa (Active Response):** Escribir scripts automatizados para que Wazuh bloquee directamente en el Firewall a las IPs atacantes.
-2. **Integración con Threat Intelligence:** Conectar el servidor mediante APIs a VirusTotal para la detección de malware basado en firmas (Hashes).
+## Nota
+* Tener en cuenta la version del Ubuntu ya que algunos comandos cambian, para este caso utilice la version 24.04 TLS y por ejemplo el comando dhcp en esta nueva version se usa dhcpcd, y cosas asi hay que tener en cuenta siempre.
 
 <img width="1895" height="972" alt="alertas" src="https://github.com/user-attachments/assets/ef8afa91-1f5e-456a-85e9-2fe48a41aa09" />
